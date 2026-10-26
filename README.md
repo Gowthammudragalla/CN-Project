@@ -46,7 +46,7 @@ All project files are organized as follows:
 | `plot_aerial_relay.py` | Python visualization script to plot 2D/3D UAV trajectories and relay handover timeline |
 | `aerial-relay-traces.csv` | Output CSV trace file containing real-time simulation metrics, coordinates, and relay status |
 | `aerial_relay_analysis.png` | Generated analysis plot showing UAV coverage areas, trajectories, and dynamic handovers |
-| `model/` | Modular component implementations |
+| `model/` | Implementations included by the main scratch driver |
 | `README.md` | Comprehensive documentation, execution commands, and project details |
 
 ---
@@ -82,7 +82,7 @@ From the ns-3 root directory (`ns-3.46.1/`):
 
 ### 6. Generate / Update Visual Analysis Graphs
 ```bash
-python3 "cn_project/plot_aerial_relay.py" "cn_project/aerial-relay-traces.csv" "cn_project/aerial_relay_analysis.png"
+python3 scratch/CN-Project-main/plot_aerial_relay.py scratch/CN-Project-main/aerial-relay-traces.csv scratch/CN-Project-main/aerial_relay_analysis.png
 ```
 
 ---
