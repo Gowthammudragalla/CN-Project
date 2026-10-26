@@ -1,12 +1,44 @@
 # M03 - UAV/HAPS Aerial Network and Relay Model
-**Module Name:** futurenet-aerial  
-**Target Simulator:** ns-3.46.1  
+
+**Module Name:** `futurenet-aerial`  
+**Version:** 1.0  
+**Framework:** ns-3.46.1  
+**Course:** Computer Networks (CN)
 
 ---
 
-## 📁 Project Directory Structure (`cn project/`)
+## 1. Project Overview
 
-All files related to this project are organized here:
+This project implements a reusable UAV/HAPS aerial network and relay model using **ns-3.46.1** according to the SRS specification for **M03 - UAV/HAPS Aerial Network and Relay Model**. The simulation focuses on 3D mobility, connectivity, relay selection, and dynamic service availability.
+
+```text
+Ground Source (Node 0)
+          |
+          v
+    UAV / HAPS Relay
+          |
+          v
+Ground Destination (Node 29)
+```
+
+---
+
+## 2. Objectives & Key Features
+
+- **3-D Mobility**: Configure Ground, UAV, and HAPS nodes with 3D mobility (`ConstantPosition`, `ConstantVelocity`, and moving trajectories).
+- **Logical Roles**: Distinguish `GROUND`, `UAV`, and `HAPS` node roles.
+- **Connectivity Model**: Range-based link eligibility (`MaxGroundAerialRange = 2000 m`, `MaxAerialAerialRange = 5000 m`).
+- **Replaceable Selection Policies**:
+  - `NearestRelayPolicy`: Selects the eligible relay with minimum path distance.
+  - `LowestDelayRelayPolicy`: Selects the eligible relay with minimum end-to-end propagation and processing delay.
+- **Dynamic Relay Handover**: Detects when an active relay flies out of range and executes automated handover to an eligible alternative.
+- **Traces & CSV Logging**: Records position updates, eligibility changes, selection events, and real-time state metrics.
+
+---
+
+## 3. Repository Structure
+
+All project files are organized as follows:
 
 | File Name | Description |
 | :--- | :--- |
@@ -14,13 +46,14 @@ All files related to this project are organized here:
 | `plot_aerial_relay.py` | Python visualization script to plot 2D/3D UAV trajectories and relay handover timeline |
 | `aerial-relay-traces.csv` | Output CSV trace file containing real-time simulation metrics, coordinates, and relay status |
 | `aerial_relay_analysis.png` | Generated analysis plot showing UAV coverage areas, trajectories, and dynamic handovers |
+| `model/` | Modular component implementations |
 | `README.md` | Comprehensive documentation, execution commands, and project details |
 
 ---
 
-## 🚀 How to Build and Run
+## 4. How to Build and Run
 
-From the root directory (`ns-3.46.1/`):
+From the ns-3 root directory (`ns-3.46.1/`):
 
 ### 1. Build the Project
 ```bash
@@ -47,33 +80,22 @@ From the root directory (`ns-3.46.1/`):
 ./ns3 run "scratch/m03-aerial-relay --maxGroundAerialRange=2500 --dwellTime=3.0 --simTime=90"
 ```
 
-### 6. Generate / Update Visual Graphs
+### 6. Generate / Update Visual Analysis Graphs
 ```bash
-python3 "cn project/plot_aerial_relay.py" "cn project/aerial-relay-traces.csv" "cn project/aerial_relay_analysis.png"
+python3 "cn_project/plot_aerial_relay.py" "cn_project/aerial-relay-traces.csv" "cn_project/aerial_relay_analysis.png"
 ```
 
 ---
 
-## 🧠 Key Components Implemented
+## 5. Simulation Scale & Demonstration
 
-1. **`AerialNodeModel`**:
-   - Manages logical node roles: `GROUND`, `UAV`, and `HAPS`.
-   - Tracks `ResidualEnergyFraction` ($0.0$ to $1.0$).
+- **30 Ground Nodes** distributed across a $3000\text{ m} \times 100\text{ m}$ coordinate plane.
+- **5 Aerial Nodes**: 4 moving UAVs at $z = 100\text{ m}$ altitude and 1 stratospheric HAPS at $z = 20,000\text{ m}$.
+- Demonstrates active packet forwarding and dynamic handovers (`Relay 30 -> Relay 31 -> Relay 33`) as UAVs move in and out of range.
 
-2. **`AerialLinkModel`**:
-   - Calculates 3D Euclidean distances $\sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}$.
-   - Enforces configurable communication range limits (`MaxGroundAerialRange = 2000m`, `MaxAerialAerialRange = 5000m`).
-   - Computes path propagation and base processing delay ($1\text{ ms}$).
+---
 
-3. **`RelaySelectionPolicy` (Interface)**:
-   - **`NearestRelayPolicy`**: Selects the eligible relay minimizing total Euclidean path distance.
-   - **`LowestDelayRelayPolicy`**: Selects the eligible relay with minimum end-to-end delay.
+## 6. References
 
-4. **`AerialRelayManager`**:
-   - Periodically evaluates candidate eligibility.
-   - Enforces `MinRelayDwellTime` ($2\text{ s}$) to prevent route flapping/hysteresis.
-   - Triggers traces: `AerialPositionUpdate`, `RelayCandidateChange`, `RelaySelectionChange`, `RelayUnavailable`.
-   - Produces the specified CSV trace format.
-
-5. **`AerialRelayApplication`**:
-   - Receives UDP packets on port $9000$ and forwards them to the destination when active.
+- [ns-3.46 Mobility Model Documentation](https://www.nsnam.org/docs/release/3.46/models/html/mobility.html)
+- [ns-3.46 MobilityModel API](https://www.nsnam.org/docs/release/3.46/doxygen/db/ddb/classns3_1_1_mobility_model.html)
