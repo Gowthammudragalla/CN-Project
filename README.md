@@ -27,7 +27,7 @@ This project aims to develop a reusable UAV/HAPS aerial network and relay model 
 - Position and relay-state tracing.
 - CSV output for simulation analysis.
 
-## 4. Simulation Requirements
+## 4.  Simulation Requirements
 
 - At least 30 ground nodes.
 - At least 5 aerial nodes.
