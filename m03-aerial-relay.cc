@@ -43,7 +43,9 @@ static const double SPEED_OF_LIGHT = 299792458.0;
 #include "model/aerial-node-model.cc"
 #include "model/aerial-link-model.cc"
 #include "model/relay-selection-policy.cc"
+#include "model/aerial-relay-application.h"
 #include "model/aerial-relay-application.cc"
+#include "model/aerial-relay-manager.h"
 #include "model/aerial-relay-manager.cc"
 #include "model/aerial-helper.cc"
 

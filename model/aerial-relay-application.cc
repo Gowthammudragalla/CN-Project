@@ -1,79 +1,144 @@
-// Extracted from m03-aerial-relay.cc.
+#ifndef AERIAL_RELAY_APPLICATION_CC
+#define AERIAL_RELAY_APPLICATION_CC
 
-// 4. AerialRelayApplication (Packet forwarding on Relays) (M03-O4)
-// ===========================================================================
+#include "aerial-relay-application.h"
 
-class AerialRelayApplication : public Application
+#include <iostream>
+#include <iomanip>
+
+using namespace ns3;
+
+TypeId
+AerialRelayApplication::GetTypeId(void)
 {
-public:
-  static TypeId GetTypeId(void)
-  {
-    static TypeId tid = TypeId("ns3::AerialRelayApplication")
-      .SetParent<Application>()
-      .SetGroupName("FutureNetAerial")
-      .AddConstructor<AerialRelayApplication>();
-    return tid;
-  }
+  static TypeId tid = TypeId("ns3::AerialRelayApplication")
+    .SetParent<Application>()
+    .SetGroupName("FutureNetAerial")
+    .AddConstructor<AerialRelayApplication>();
+  return tid;
+}
 
-  AerialRelayApplication()
-    : m_port(9000),
-      m_isActiveRelay(false),
-      m_packetsForwarded(0),
-      m_packetsDropped(0)
-  {
-  }
+AerialRelayApplication::AerialRelayApplication()
+  : m_port(9000),
+    m_isActiveRelay(false),
+    m_packetsForwarded(0),
+    m_packetsDropped(0),
+    m_recvSocket(nullptr),
+    m_sendSocket(nullptr)
+{
+}
 
-  void Setup(uint16_t listenPort, Address destAddress)
-  {
-    m_port = listenPort;
-    m_destAddress = destAddress;
-  }
+AerialRelayApplication::~AerialRelayApplication()
+{
+}
 
-  void SetActiveRelay(bool active)
-  {
-    m_isActiveRelay = active;
-  }
+void
+AerialRelayApplication::Setup(uint16_t listenPort, Address destAddress)
+{
+  m_port = listenPort;
+  m_destAddress = destAddress;
+}
 
-  bool IsActiveRelay() const
-  {
-    return m_isActiveRelay;
-  }
+void
+AerialRelayApplication::SetActiveRelay(bool active)
+{
+  m_isActiveRelay = active;
+}
 
-  uint32_t GetPacketsForwarded() const { return m_packetsForwarded; }
-  uint32_t GetPacketsDropped() const { return m_packetsDropped; }
+bool
+AerialRelayApplication::IsActiveRelay() const
+{
+  return m_isActiveRelay;
+}
 
-private:
-  void StartApplication() override
+uint32_t
+AerialRelayApplication::GetPacketsForwarded() const
+{
+  return m_packetsForwarded;
+}
+
+uint32_t
+AerialRelayApplication::GetPacketsDropped() const
+{
+  return m_packetsDropped;
+}
+
+void
+AerialRelayApplication::SetDestinationAddress(Address destAddress)
+{
+  m_destAddress = destAddress;
+}
+
+Address
+AerialRelayApplication::GetDestinationAddress() const
+{
+  return m_destAddress;
+}
+
+void
+AerialRelayApplication::SetPort(uint16_t port)
+{
+  m_port = port;
+}
+
+uint16_t
+AerialRelayApplication::GetPort() const
+{
+  return m_port;
+}
+
+void
+AerialRelayApplication::StartApplication()
+{
+  NS_ASSERT_MSG(GetNode() != nullptr, "AerialRelayApplication requires an aggregated Node");
+
+  if (!m_recvSocket)
   {
     m_recvSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
     InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
     m_recvSocket->Bind(local);
     m_recvSocket->SetRecvCallback(MakeCallback(&AerialRelayApplication::HandleRead, this));
+  }
 
+  if (!m_sendSocket)
+  {
     m_sendSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
   }
+}
 
-  void StopApplication() override
+void
+AerialRelayApplication::StopApplication()
+{
+  if (m_recvSocket)
   {
-    if (m_recvSocket)
-    {
-      m_recvSocket->Close();
-      m_recvSocket = nullptr;
-    }
-    if (m_sendSocket)
-    {
-      m_sendSocket->Close();
-      m_sendSocket = nullptr;
-    }
+    m_recvSocket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
+    m_recvSocket->Close();
+    m_recvSocket = nullptr;
   }
-
-  void HandleRead(Ptr<Socket> socket)
+  if (m_sendSocket)
   {
-    Ptr<Packet> packet;
-    Address from;
-    while ((packet = socket->RecvFrom(from)))
+    m_sendSocket->Close();
+    m_sendSocket = nullptr;
+  }
+}
+
+void
+AerialRelayApplication::DoDispose()
+{
+  StopApplication();
+  Application::DoDispose();
+}
+
+void
+AerialRelayApplication::HandleRead(Ptr<Socket> socket)
+{
+  Ptr<Packet> packet;
+  Address from;
+  while ((packet = socket->RecvFrom(from)))
+  {
+    if (m_isActiveRelay)
     {
-      if (m_isActiveRelay)
+      if (m_sendSocket)
       {
         m_packetsForwarded++;
         std::cout << "  [Time " << std::fixed << std::setprecision(2) << Simulator::Now().GetSeconds()
@@ -84,20 +149,16 @@ private:
       else
       {
         m_packetsDropped++;
-        std::cout << "  [Time " << std::fixed << std::setprecision(2) << Simulator::Now().GetSeconds()
-                  << "s] Relay (Node " << GetNode()->GetId()
-                  << ") DROPPED packet (inactive relay)." << std::endl;
       }
     }
+    else
+    {
+      m_packetsDropped++;
+      std::cout << "  [Time " << std::fixed << std::setprecision(2) << Simulator::Now().GetSeconds()
+                << "s] Relay (Node " << GetNode()->GetId()
+                << ") DROPPED packet (inactive relay)." << std::endl;
+    }
   }
+}
 
-  uint16_t m_port;
-  Address m_destAddress;
-  bool m_isActiveRelay;
-  uint32_t m_packetsForwarded;
-  uint32_t m_packetsDropped;
-  Ptr<Socket> m_recvSocket;
-  Ptr<Socket> m_sendSocket;
-};
-
-// ===========================================================================
+#endif // AERIAL_RELAY_APPLICATION_CC
