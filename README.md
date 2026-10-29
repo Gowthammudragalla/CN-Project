@@ -95,7 +95,55 @@ python3 scratch/CN-Project-main/plot_aerial_relay.py scratch/CN-Project-main/aer
 
 ---
 
-## 6. References
+## 6. Verified Test & Simulation Results
+
+All tests and simulations have been executed and verified on **ns-3.46.1 / macOS** using the commands documented in Section 4.
+
+### Test Suite (8/8 PASSED)
+
+```
+============================================================
+        RUNNING M03 TEST SUITE (T01 - T05 & V1 - V3)
+============================================================
+  [PASS] T01: Role and Attribute construction & Energy fraction
+  [PASS] T02: Range eligibility below (1990m), equal (2000m), above (2001m)
+  [PASS] T03: NearestRelayPolicy selects closest candidate (Node 20, 800m)
+  [PASS] T04: Relay loss triggers alternate selection (Node 10 selected next)
+  [PASS] T05: 3-D Mobility coordinates (x, y, z) initialized correctly
+  [PASS] V1: Increasing ground-relay distance increases estimated propagation delay
+  [PASS] V2: Moving relay outside MaxGroundAerialRange causes ineligibility
+  [PASS] V3: LowestDelayRelayPolicy selects candidate with lowest delay (Node 2)
+TEST SUITE RESULT: 8/8 PASSED
+============================================================
+```
+
+### Demonstration Simulation (nearest policy, 60 s)
+
+Key observed events:
+- **t=0 s** — Initial handover: Relay −1 → Node 30 (UAV, eligible from start)
+- **t=2–16 s** — Packets forwarded via Node 30
+- **t=18 s** — Handover: Node 30 → Node 31 (UAV flies closer, dwell-time satisfied)
+- **t=18 s** — Node 30 drops one packet (now inactive relay)
+- **t=22–54 s** — Packets forwarded via Node 31
+- **t=59 s** — Final handover: Node 31 → Node 33
+
+### Simulation with Lowest-Delay Policy
+
+- **t=0 s** — Initial handover to Node 30
+- **t=25 s** — Node 30 becomes unavailable (out of range); immediate handover to Node 31
+- `[UNAVAILABLE TRACE]` fired correctly
+- Forwarding continues on Node 31 through t=54 s
+
+### Output Artifacts
+
+| File | Description |
+| :--- | :--- |
+| `aerial-relay-traces.csv` | 301 rows; 5 aerial nodes × 60 evaluation ticks |
+| `aerial_relay_analysis.png` | UAV trajectory + relay handover timeline plot |
+
+---
+
+## 7. References
 
 - [ns-3.46 Mobility Model Documentation](https://www.nsnam.org/docs/release/3.46/models/html/mobility.html)
 - [ns-3.46 MobilityModel API](https://www.nsnam.org/docs/release/3.46/doxygen/db/ddb/classns3_1_1_mobility_model.html)
