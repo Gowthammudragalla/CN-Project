@@ -33,7 +33,7 @@ class RelaySelectionPolicy : public Object
 public:
   static TypeId GetTypeId(void)
   {
-    static TypeId tid = TypeId("ns3::RelaySelectionPolicy")
+    static TypeId tid = TypeId("ns3::CNProjectRelaySelectionPolicy")
       .SetParent<Object>()
       .SetGroupName("FutureNetAerial");
     return tid;
@@ -49,7 +49,7 @@ class NearestRelayPolicy : public RelaySelectionPolicy
 public:
   static TypeId GetTypeId(void)
   {
-    static TypeId tid = TypeId("ns3::NearestRelayPolicy")
+    static TypeId tid = TypeId("ns3::CNProjectNearestRelayPolicy")
       .SetParent<RelaySelectionPolicy>()
       .SetGroupName("FutureNetAerial")
       .AddConstructor<NearestRelayPolicy>();
@@ -83,7 +83,7 @@ class LowestDelayRelayPolicy : public RelaySelectionPolicy
 public:
   static TypeId GetTypeId(void)
   {
-    static TypeId tid = TypeId("ns3::LowestDelayRelayPolicy")
+    static TypeId tid = TypeId("ns3::CNProjectLowestDelayRelayPolicy")
       .SetParent<RelaySelectionPolicy>()
       .SetGroupName("FutureNetAerial")
       .AddConstructor<LowestDelayRelayPolicy>();

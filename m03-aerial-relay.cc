@@ -213,8 +213,14 @@ bool RunAllTests()
       // Advance
     });
 
+    Ptr<AerialNodeModel> model = CreateObject<AerialNodeModel>();
+    n->AggregateObject(model);
+    MobilityState state = model->GetMobilityState();
+
     reportTest("T05: 3-D Mobility coordinates (x, y, z) initialized correctly",
-               p0.x == 100.0 && p0.y == 200.0 && p0.z == 100.0);
+               p0.x == 100.0 && p0.y == 200.0 && p0.z == 100.0 &&
+               state.position.x == 100.0 && state.position.y == 200.0 &&
+               state.position.z == 100.0 && state.speedMps == 10.0);
   }
 
   // --- V1: Increasing Ground-Relay Distance Increases Delay ---
@@ -397,21 +403,35 @@ int main(int argc, char* argv[])
   // UAV 0: Starts at (800, 0, 100), moves North (+Y) at 40 m/s (flies OUT of range)
   // UAV 1: Starts at (1500, 2000, 100), moves South (-Y) at 40 m/s (flies INTO range)
   // UAV 2: Starts at (2200, 0, 100), moves slowly East at 10 m/s
-  // UAV 3: Waypoint trajectory or ConstantVelocity at (500, 1500, 100)
+  // UAV 3: Waypoint trajectory at (500, 1500, 100)
   Ptr<ListPositionAllocator> uavPositionAlloc = CreateObject<ListPositionAllocator>();
   uavPositionAlloc->Add(Vector(1500.0, 200.0, 100.0));  // UAV 0: Starts in range, flies North (+Y) OUT of range
   uavPositionAlloc->Add(Vector(1500.0, 1800.0, 100.0)); // UAV 1: Starts out of range, flies South (-Y) INTO range
   uavPositionAlloc->Add(Vector(2200.0, 0.0, 100.0));    // UAV 2
   uavPositionAlloc->Add(Vector(500.0, 1500.0, 100.0));   // UAV 3
   mobility.SetPositionAllocator(uavPositionAlloc);
+  NodeContainer constantVelocityUavs;
+  constantVelocityUavs.Add(uavNodes.Get(0));
+  constantVelocityUavs.Add(uavNodes.Get(1));
+  constantVelocityUavs.Add(uavNodes.Get(2));
   mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-  mobility.Install(uavNodes);
+  mobility.Install(constantVelocityUavs);
 
   // Set velocities (m/s)
   uavNodes.Get(0)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(0.0, 45.0, 0.0));
   uavNodes.Get(1)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(0.0, -45.0, 0.0));
   uavNodes.Get(2)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(10.0, 0.0, 0.0));
-  uavNodes.Get(3)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(Vector(15.0, -10.0, 0.0));
+
+  MobilityHelper waypointMobility;
+  waypointMobility.SetMobilityModel("ns3::WaypointMobilityModel");
+  NodeContainer waypointUav;
+  waypointUav.Add(uavNodes.Get(3));
+  waypointMobility.Install(waypointUav);
+  Ptr<WaypointMobilityModel> waypointModel =
+    uavNodes.Get(3)->GetObject<WaypointMobilityModel>();
+  waypointModel->AddWaypoint(Waypoint(Seconds(0.0), Vector(500.0, 1500.0, 100.0)));
+  waypointModel->AddWaypoint(Waypoint(Seconds(20.0), Vector(800.0, 1300.0, 120.0)));
+  waypointModel->AddWaypoint(Waypoint(Seconds(40.0), Vector(1200.0, 1000.0, 100.0)));
 
   // 1 HAPS node at z = 20,000m (SRS Default HapsAltitude)
   Ptr<ListPositionAllocator> hapsPositionAlloc = CreateObject<ListPositionAllocator>();

@@ -9,6 +9,7 @@ import sys
 import os
 import csv
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 def plot_aerial_traces(csv_file="aerial-relay-traces.csv", output_file="aerial_relay_analysis.png"):
     if not os.path.exists(csv_file):
@@ -53,11 +54,39 @@ def plot_aerial_traces(csv_file="aerial-relay-traces.csv", output_file="aerial_r
         trajectories[nid]['time'].append(d['time_s'])
         trajectories[nid]['role'] = d['role']
 
-    # Create figure with 2 subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11, 10))
-
-    # --- Plot 1: 2-D Top-Down Mobility (X vs Y) ---
+    # Create figure with 3 subplots: 3-D mobility, top-down coverage, and handovers.
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:purple', 'tab:red']
+    fig = plt.figure(figsize=(13, 16))
+    ax0 = fig.add_subplot(3, 1, 1, projection='3d')
+    ax1 = fig.add_subplot(3, 1, 2)
+    ax2 = fig.add_subplot(3, 1, 3)
+
+    # --- Plot 1: 3-D Mobility ---
+    ax0.set_title("3-D UAV / HAPS Mobility", fontsize=13, fontweight='bold')
+    for idx, nid in enumerate(node_ids):
+        tr = trajectories[nid]
+        if tr['role'] == 'HAPS':
+            ax0.scatter(tr['x'][0], tr['y'][0], tr['z'][0],
+                        color='purple', marker='s', s=100,
+                        label=f"HAPS (Node {nid}, z=20km)")
+        else:
+            c = colors[idx % len(colors)]
+            ax0.plot(tr['x'], tr['y'], tr['z'], marker='o', markersize=2,
+                     label=f"UAV {nid}", color=c)
+            ax0.scatter(tr['x'][0], tr['y'][0], tr['z'][0], color=c, marker='o')
+            ax0.scatter(tr['x'][-1], tr['y'][-1], tr['z'][-1], color=c, marker='x')
+
+    ax0.scatter([0], [0], [0], color='black', marker='^', s=90,
+                label='Ground Source (Node 0)')
+    ax0.scatter([3000], [0], [0], color='darkred', marker='v', s=90,
+                label='Ground Dest (Node 29)')
+    ax0.set_xlabel("X (m)")
+    ax0.set_ylabel("Y (m)")
+    ax0.set_zlabel("Altitude Z (m)")
+    ax0.legend(loc='upper left', fontsize=8)
+    ax0.view_init(elev=25, azim=-60)
+
+    # --- Plot 2: 2-D Top-Down Mobility (X vs Y) ---
     ax1.set_title("UAV / Aerial Node Trajectories & Range Boundaries", fontsize=13, fontweight='bold')
     
     # Ground Source & Destination
@@ -86,7 +115,7 @@ def plot_aerial_traces(csv_file="aerial-relay-traces.csv", output_file="aerial_r
     ax1.grid(True, linestyle=':', alpha=0.6)
     ax1.legend(loc='upper right', fontsize=9)
 
-    # --- Plot 2: Selected Relay Handover Timeline ---
+    # --- Plot 3: Selected Relay Handover Timeline ---
     timeline_t = sorted(active_relay_by_time.keys())
     timeline_relay = [active_relay_by_time[t] for t in timeline_t]
 

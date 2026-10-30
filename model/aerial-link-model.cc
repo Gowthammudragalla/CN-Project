@@ -16,7 +16,7 @@ class AerialLinkModel : public Object
 public:
   static TypeId GetTypeId(void)
   {
-    static TypeId tid = TypeId("ns3::AerialLinkModel")
+    static TypeId tid = TypeId("ns3::CNProjectAerialLinkModel")
       .SetParent<Object>()
       .SetGroupName("FutureNetAerial")
       .AddConstructor<AerialLinkModel>();

@@ -10,6 +10,12 @@ enum class AerialNodeRole
   HAPS
 };
 
+struct MobilityState
+{
+  Vector position;
+  double speedMps;
+};
+
 std::string RoleToString(AerialNodeRole role)
 {
   switch (role)
@@ -26,7 +32,7 @@ class AerialNodeModel : public Object
 public:
   static TypeId GetTypeId(void)
   {
-    static TypeId tid = TypeId("ns3::AerialNodeModel")
+    static TypeId tid = TypeId("ns3::CNProjectAerialNodeModel")
       .SetParent<Object>()
       .SetGroupName("FutureNetAerial")
       .AddConstructor<AerialNodeModel>();
@@ -47,6 +53,26 @@ public:
   AerialNodeRole GetRole() const
   {
     return m_role;
+  }
+
+  MobilityState GetMobilityState() const
+  {
+    MobilityState state{Vector(0.0, 0.0, 0.0), 0.0};
+    Ptr<Node> node = GetObject<Node>();
+    if (!node)
+    {
+      return state;
+    }
+
+    Ptr<MobilityModel> mobility = node->GetObject<MobilityModel>();
+    if (!mobility)
+    {
+      return state;
+    }
+
+    state.position = mobility->GetPosition();
+    state.speedMps = mobility->GetVelocity().GetLength();
+    return state;
   }
 
   // Residual energy fraction [0.0 = 0%, 1.0 = 100%]
