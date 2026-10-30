@@ -13,7 +13,7 @@ using namespace ns3;
 TypeId
 AerialRelayManager::GetTypeId(void)
 {
-  static TypeId tid = TypeId("ns3::AerialRelayManager")
+  static TypeId tid = TypeId("ns3::CNProjectAerialRelayManager")
     .SetParent<Object>()
     .SetGroupName("FutureNetAerial")
     .AddConstructor<AerialRelayManager>()

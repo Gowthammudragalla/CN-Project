@@ -11,7 +11,7 @@ using namespace ns3;
 TypeId
 AerialRelayApplication::GetTypeId(void)
 {
-  static TypeId tid = TypeId("ns3::AerialRelayApplication")
+  static TypeId tid = TypeId("ns3::CNProjectAerialRelayApplication")
     .SetParent<Application>()
     .SetGroupName("FutureNetAerial")
     .AddConstructor<AerialRelayApplication>();
